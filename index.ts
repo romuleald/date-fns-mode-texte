@@ -1,16 +1,27 @@
-import type { Duration } from 'date-fns';
+import type { Duration } from "date-fns";
 
 const regexDateMatch =
-  /(?:(?<jours>\d+)\sjour)|(?:(?<mois>\d+)\smois)|(?:(?<ans>\d+)\san)/g;
+  /(?<days>\d+)\sjour|(?<months>\d+)\smois|(?<years>\d+)\san/g;
 
-const translateType = (date: string) =>
-  ({ an: "years", mois: "months", jour: "days" }[date] ?? '');
+const regexNotionTemps = /(il y a|dans)/g;
 
+const negOrPos = (groups: Duration, matchNotionTemps: string) => {
+  const [notionTemps] = matchNotionTemps.match(regexNotionTemps) ?? [];
+  const positifOuNegatif = notionTemps === "dans" ? 1 : -1;
+  return Object.entries(groups)
+    .filter(([_, v]) => v !== undefined)
+    .reduce(
+      (acc, [key, value]) => ({
+        ...acc,
+        ...{ [key]: Number(value) * positifOuNegatif },
+      }),
+      {}
+    );
+};
 export const transformeDate = (typedDate: string): Duration => {
-  const dateRelativeMatcher = typedDate.match(regexDateMatch) ?? [];
+  const dateRelativeMatcher = [...typedDate.matchAll(regexDateMatch)];
   return dateRelativeMatcher.reduce((acc: any, curr) => {
-    const [nb, type] = curr.split(" ");
-    acc[translateType(type)] = nb;
-    return acc;
+    const { groups } = curr;
+    return { ...acc, ...negOrPos(groups as Duration, typedDate) };
   }, {});
 };

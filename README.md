@@ -17,6 +17,7 @@ npm i -D @romuleald/date-fns-gherkin-texte
 Le gherkin écrit ainsi :
 ```gheking
     Given j'ai fait mon virement il y a 1 an 3 mois et 10 jours
+    And Il sera validé dans 1 an 3 mois et 10 jours
 ```
 
 Le test :
@@ -26,12 +27,21 @@ import { add, startOfToday } from 'date-fns';
 // votre lecteur de gherkin préféré, ici la syntaxe tiré de jest-cucumber
 given(/j'ai fait mon virement (.*)$/, (dateEnTexte: string) => {
     const dateDuration = transformeDate(dateEnTexte);
-    // dateDuration = {years: 1, months: 3, days: 10};
+    // dateDuration = {years: -1, months: -3, days: -10}; // négatif
+    add(startOfToday(), dateDuration)
+}),
+and(/Il sera validé (.*)$/, (dateEnTexte: string) => {
+    const dateDuration = transformeDate(dateEnTexte);
+    // dateDuration = {years: 1, months: 3, days: 10}; // positif
     add(startOfToday(), dateDuration)
 })
 ```
 
 ## Changelog
+
+### 1.0.0
+* 🔧 Date renvoyé en string
+* 🚀 Date en négatif ou positif
 
 ### 1.0.0
 * 🚀 Init du package avec la fonctionnalité de base
